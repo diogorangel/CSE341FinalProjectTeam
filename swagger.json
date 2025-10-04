@@ -8,7 +8,7 @@
   "host": "localhost:8080",
   "servers": [
     {
-      "url": "https://cse341project-h93z.onrender.com",
+      "url": "https://cse341finalprojectteam.onrender.com",
       "description": "Production/Remote Server (Render)"
     },
     {

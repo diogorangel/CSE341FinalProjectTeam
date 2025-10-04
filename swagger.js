@@ -9,7 +9,7 @@ const doc = {
     servers: [
         {
             // Deploy URL (Render)
-            url: 'https://cse341project-h93z.onrender.com',
+            url: 'https://cse341finalprojectteam.onrender.com/api-docs',
             description: 'Production/Remote Server (Render)',
         },
         {
