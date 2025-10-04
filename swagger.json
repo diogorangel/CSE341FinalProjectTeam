@@ -5,7 +5,6 @@
     "version": "1.0.0",
     "description": "A simple Express API for managing personal records with MongoDB."
   },
-
   "servers": [
     {
       "url": "https://cse341finalprojectteam.onrender.com",
@@ -20,7 +19,7 @@
   "tags": [
     {
       "name": "Users",
-      "description": "User registration and session management (Login/Logout)"
+      "description": "User registration and session management (Login/Logout, Profile CRUD)"
     },
     {
       "name": "Records",
@@ -108,7 +107,7 @@
             "schema": {
               "type": "object",
               "properties": {
-               "username": {
+                "username": {
                   "example": "testuser1"
                 },
                 "password": {
@@ -171,6 +170,126 @@
         ]
       }
     },
+    "/user/all": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "List of all users (password field is excluded).",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "type": "string",
+                    "example": "60a7d5b1..."
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "testuser"
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error while retrieving users."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/user/{id}": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile successfully updated."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User account successfully deleted (No Content)."
+          },
+          "404": {
+            "description": "User not found."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
     "/record/": {
       "post": {
         "tags": [
@@ -200,6 +319,9 @@
           },
           "401": {
             "description": "Access denied. Please log in."
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "500": {
             "description": "Internal Server Error"
@@ -240,6 +362,9 @@
           "401": {
             "description": "Access denied. Please log in."
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal Server Error"
           }
@@ -274,6 +399,9 @@
           },
           "401": {
             "description": "Access denied. Please log in."
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "Record not found or access denied."
@@ -320,6 +448,9 @@
           "401": {
             "description": "Access denied. Please log in."
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Record not found or access denied."
           },
@@ -353,6 +484,9 @@
           "401": {
             "description": "Access denied. Please log in."
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Record not found or access denied."
           },
@@ -372,6 +506,10 @@
     "UserRegistration": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string",
+          "example": "60a7d5b1234567890abcefd0"
+        },
         "username": {
           "type": "string",
           "example": "testuser"
@@ -379,6 +517,23 @@
         "password": {
           "type": "string",
           "example": "password123"
+        }
+      }
+    },
+    "UserUpdate": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "example": "60a7d5b1234567890abcefd0"
+        },
+        "username": {
+          "type": "string",
+          "example": "testuser1"
+        },
+        "password": {
+          "type": "string",
+          "example": "password1234"
         }
       }
     },

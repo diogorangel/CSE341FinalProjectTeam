@@ -25,13 +25,14 @@ const doc = {
     tags: [
         {
             name: 'Users',
-            description: 'User registration and session management (Login/Logout)'
+            description: 'User registration and session management (Login/Logout, Profile CRUD)'
         },
         {
             name: 'Records',
             description: 'CRUD operations for Personal Records'
         }
     ],
+    
     // Authentication Schemes
     securityDefinitions: {
         SessionCookie: {
@@ -41,11 +42,82 @@ const doc = {
             description: "Session cookie for authentication."
         }
     },
+
+    // 🚀 NEW PATHS object to define all your API routes
+    paths: {
+        // --- EXISTING USER PATHS ---
+        "/user/register": { /* ... */ }, // Assume POST is defined elsewhere or found by autogen
+        "/user/login": { /* ... */ },    // Assume POST is defined elsewhere or found by autogen
+        "/user/logout": { /* ... */ },   // Assume GET is defined elsewhere or found by autogen
+
+        // --- 🚀 NEW USER PROFILE CRUD ENDPOINT ---
+        "/user/{id}": {
+            "put": {
+                "tags": ["Users"],
+                "summary": "Updates the logged-in user's profile.",
+                "description": "Allows the user to update their own account details (e.g., username, password). Requires authentication.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                        "description": "The ID of the user to update (must match the logged-in user's ID)."
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": { "description": "User profile successfully updated." },
+                    "401": { "description": "Access denied. Please log in." },
+                    "403": { "description": "Forbidden: User ID mismatch." }
+                },
+                "security": [{ "SessionCookie": [] }]
+            },
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Deletes the logged-in user's account.",
+                "description": "Permanently deletes the user account and destroys the session. Requires authentication.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                        "description": "The ID of the user to delete (must match the logged-in user's ID)."
+                    }
+                ],
+                "responses": {
+                    "204": { "description": "User account successfully deleted (No Content)." },
+                    "401": { "description": "Access denied. Please log in." },
+                    "403": { "description": "Forbidden: User ID mismatch." }
+                },
+                "security": [{ "SessionCookie": [] }]
+            }
+        },
+        
+        // --- EXISTING RECORD PATHS ---
+        // "/record/": { /* ... */ },      // Assume GET/POST are defined elsewhere or found by autogen
+        // "/record/{id}": { /* ... */ } // Assume GET/PUT/DELETE are defined elsewhere or found by autogen
+    },
+
     // Model Definitions
     definitions: {
         UserRegistration: {
-            username: "testuser",
-            password: "password123"
+             _id: "60a7d5b1234567890abcefd0", // Including the ID for visualization
+             username: "testuser",
+             password: "password123"
+        },
+        UserUpdate: {
+             _id: "60a7d5b1234567890abcefd0", // Including the ID for visualization
+             username: "testuser1",
+             password: "password1234"
         },
         // Complete definition of the Record Object (for GET responses)
         Record: {
