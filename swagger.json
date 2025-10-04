@@ -8,7 +8,7 @@
   "host": "localhost:8080",
   "servers": [
     {
-      "url": "https://cse341finalprojectteam.onrender.com",
+      "url": "https://cse341finalprojectteam.onrender.com/api-docs",
       "description": "Production/Remote Server (Render)"
     },
     {
@@ -106,7 +106,7 @@
             "in": "body",
             "schema": {
               "type": "object",
-              "properties": {
+             "properties": {
                 "username": {
                   "example": "testuser1"
                 },
