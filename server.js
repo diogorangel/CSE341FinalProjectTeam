@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const session = require('express-session');
-const cors = require('cors'); // AGORA COM OPÇÕES
+const cors = require('cors'); 
 const routes = require('./routes');
 const swaggerUi = require('swagger-ui-express');
 
@@ -13,13 +13,15 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// //CORS Specific Configuration
+// Your domain on Render (HTTPS protocol is implied for Render)
+const DEPLOY_ORIGIN = 'https://cse341finalprojectteam.onrender.com';
+
+// CORS Specific Configuration
 const corsOptions = {
-    // 1. Enable local address. Change this to your production frontend URL.
-    // We use 'http://localhost:8080' because the API and Swagger UI run on the same local origin.
-    origin: ['http://localhost:8080', process.env.DEPLOY_URL_FRONTEND], 
+    // 1. Allow localhost for development and your deploy domain for production
+    origin: ['http://localhost:8080', DEPLOY_ORIGIN], 
     
-   // 2. ESSENTIAL: Allows session cookies (credentials) to be sent.
+    // 2. ESSENTIAL: Allows session cookies (credentials) to be sent.
     credentials: true,
     
     // 3. Allow all HTTP methods
@@ -27,7 +29,7 @@ const corsOptions = {
 };
 
 // --- Middleware Configuration ---
-app.use(cors(corsOptions)); // Applying CORS options
+app.use(cors(corsOptions)); // Applying CORRECTED CORS options
 app.use(express.json()); 
 
 // Session Configuration
@@ -37,8 +39,13 @@ app.use(session({
     saveUninitialized: false,
     cookie: { 
         maxAge: 1000 * 60 * 60 * 24, // 1 day
-        // Mantenha 'secure: false' em desenvolvimento (local HTTP)
-        secure: process.env.NODE_ENV === 'production' 
+        
+        // CORRECTION 1: Ensures 'secure' is true on Render (HTTPS)
+        secure: process.env.NODE_ENV === 'production', 
+        
+        // CORRECTION 2: ESSENTIAL for cross-origin cookie transmission over HTTPS.
+        // 'lax' for local development, 'none' for production (with secure: true).
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     } 
 }));
 
