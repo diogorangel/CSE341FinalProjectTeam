@@ -29,7 +29,7 @@ const corsOptions = {
 };
 
 // --- Middleware Configuration ---
-app.use(cors(corsOptions)); // Applying CORRECTED CORS options
+app.use(cors(corsOptions));
 app.use(express.json()); 
 
 // Session Configuration
@@ -40,11 +40,11 @@ app.use(session({
     cookie: { 
         maxAge: 1000 * 60 * 60 * 24, // 1 day
         
-        // CORRECTION 1: Ensures 'secure' is true on Render (HTTPS)
+        // Ensures 'secure' is true on Render (HTTPS)
         secure: process.env.NODE_ENV === 'production', 
         
-        // CORRECTION 2: ESSENTIAL for cross-origin cookie transmission over HTTPS.
-        // 'lax' for local development, 'none' for production (with secure: true).
+        // ESSENTIAL for cross-origin cookie transmission over HTTPS.
+        // 'none' is required with 'secure: true' for the Render deployment.
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     } 
 }));
@@ -59,7 +59,18 @@ app.use('/', routes);
 
 // Loads the generated swagger.json file
 const swaggerDocument = require('./swagger.json');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); 
+
+// 🚀 MODIFICATION HERE: Forces the Swagger UI to use the HTTPS URL
+// This helps prevent caching issues from forcing HTTP on the deployed documentation.
+const swaggerOptions = {
+    swaggerOptions: {
+        // Tells Swagger UI to use the HTTPS URL defined in your swagger.json as the default
+        url: DEPLOY_ORIGIN + '/swagger.json'
+    }
+};
+
+// Use the new options in the setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions)); 
 
 // --- Start Server ---
 app.listen(PORT, () => {
