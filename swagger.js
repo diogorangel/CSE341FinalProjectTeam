@@ -8,8 +8,8 @@ const doc = {
     },
     servers: [
         {
-            // Deploy URL (Render)
-            url: 'https://cse341finalprojectteam.onrender.com/api-docs',
+            // Deploy URL (Render) - Must be the API base URL, not the docs path
+            url: 'https://cse341finalprojectteam.onrender.com',
             description: 'Production/Remote Server (Render)',
         },
         {
@@ -18,6 +18,10 @@ const doc = {
             description: 'Local Development Server',
         }
     ],
+    
+    // ✅ CORRECTION: Add HTTPS to schemes
+    schemes: ['http', 'https'], 
+
     tags: [
         {
             name: 'Users',

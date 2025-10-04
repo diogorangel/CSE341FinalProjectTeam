@@ -5,10 +5,9 @@
     "version": "1.0.0",
     "description": "A simple Express API for managing personal records with MongoDB."
   },
-  "host": "localhost:8080",
   "servers": [
     {
-      "url": "https://cse341finalprojectteam.onrender.com/api-docs",
+      "url": "https://cse341finalprojectteam.onrender.com",
       "description": "Production/Remote Server (Render)"
     },
     {
@@ -28,7 +27,8 @@
     }
   ],
   "schemes": [
-    "http"
+    "http",
+    "https"
   ],
   "securityDefinitions": {
     "SessionCookie": {
@@ -52,11 +52,17 @@
             "schema": {
               "type": "object",
               "properties": {
-                "username": {
-                  "example": "testuser1"
+                "in": {
+                  "example": "any"
                 },
-                "password": {
-                  "example": "password1234"
+                "description": {
+                  "example": "any"
+                },
+                "required": {
+                  "example": "any"
+                },
+                "schema": {
+                  "example": "any"
                 }
               }
             }
@@ -106,12 +112,18 @@
             "in": "body",
             "schema": {
               "type": "object",
-             "properties": {
-                "username": {
-                  "example": "testuser1"
+              "properties": {
+                "in": {
+                  "example": "any"
                 },
-                "password": {
-                  "example": "password1234"
+                "description": {
+                  "example": "any"
+                },
+                "required": {
+                  "example": "any"
+                },
+                "schema": {
+                  "example": "any"
                 }
               }
             }
