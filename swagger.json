@@ -52,17 +52,11 @@
             "schema": {
               "type": "object",
               "properties": {
-                "in": {
-                  "example": "any"
+                "username": {
+                  "example": "testuser"
                 },
-                "description": {
-                  "example": "any"
-                },
-                "required": {
-                  "example": "any"
-                },
-                "schema": {
-                  "example": "any"
+                "password": {
+                  "example": "password123"
                 }
               }
             }
@@ -113,17 +107,11 @@
             "schema": {
               "type": "object",
               "properties": {
-                "in": {
-                  "example": "any"
+               "username": {
+                  "example": "testuser1"
                 },
-                "description": {
-                  "example": "any"
-                },
-                "required": {
-                  "example": "any"
-                },
-                "schema": {
-                  "example": "any"
+                "password": {
+                  "example": "password1234"
                 }
               }
             }
