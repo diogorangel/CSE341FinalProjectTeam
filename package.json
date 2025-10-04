@@ -1,0 +1,37 @@
+{
+  "name": "cse341finalprojectteam",
+  "version": "1.0.0",
+  "description": "CSE341FinalProject",
+  "keywords": [
+    "CSE341ProjectFinal"
+  ],
+  "homepage": "https://github.com/diogorangel/CSE341FinalProjectTeam#readme",
+  "bugs": {
+    "url": "https://github.com/diogorangel/CSE341FinalProjectTeam/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diogorangel/CSE341FinalProjectTeam.git"
+  },
+  "license": "ISC",
+  "author": "Diogo Rangel",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
