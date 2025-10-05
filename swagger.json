@@ -39,13 +39,55 @@
     }
   },
   "paths": {
+    "/auth/google": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "",
+        "responses": {
+          "302": {
+            "description": "Redirects to Google login page."
+          }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "",
+        "responses": {
+          "302": {
+            "description": "Redirects user to success/failure page."
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Successfully logged out."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/user/register": {
       "post": {
         "tags": [
           "Users"
         ],
         "description": "",
-        "parameters": [
+         "parameters": [
           {
             "name": "body",
             "in": "body",
@@ -199,6 +241,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal error while retrieving users."
           }
@@ -246,6 +294,12 @@
           "400": {
             "description": "Bad Request"
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "User not found."
           },
@@ -275,6 +329,12 @@
         "responses": {
           "204": {
             "description": "User account successfully deleted (No Content)."
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "404": {
             "description": "User not found."

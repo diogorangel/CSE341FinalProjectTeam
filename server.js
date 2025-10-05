@@ -6,12 +6,21 @@ const session = require('express-session');
 const cors = require('cors'); 
 const routes = require('./routes');
 const swaggerUi = require('swagger-ui-express');
+const passport = require('passport');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 const MONGODB_URI = process.env.MONGODB_URI;
+
+// We comment this out until auth/google.js is created, otherwise it crashes the server.
+// require('./auth/google')(passport); 
+
+// Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 // Your domain on Render (HTTPS protocol is implied for Render)
 const DEPLOY_ORIGIN = 'https://cse341finalprojectteam.onrender.com';
@@ -49,11 +58,6 @@ app.use(session({
     } 
 }));
 
-// --- MongoDB Connection ---
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB!'))
-    .catch(err => console.error('Connection error to MongoDB:', err.message));
-
 // --- Routes and Documentation ---
 app.use('/', routes);
 
@@ -61,7 +65,6 @@ app.use('/', routes);
 const swaggerDocument = require('./swagger.json');
 
 // 🚀 MODIFICATION HERE: Forces the Swagger UI to use the HTTPS URL
-// This helps prevent caching issues from forcing HTTP on the deployed documentation.
 const swaggerOptions = {
     swaggerOptions: {
         // Tells Swagger UI to use the HTTPS URL defined in your swagger.json as the default
@@ -72,8 +75,23 @@ const swaggerOptions = {
 // Use the new options in the setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions)); 
 
-// --- Start Server ---
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API documentation at http://localhost:${PORT}/api-docs`);
-});
+// =========================================================================
+// CRITICAL FIX FOR TESTING: Separate app initialization from server startup.
+// We only connect to MongoDB and start the listener if we are not running tests.
+// =========================================================================
+if (process.env.NODE_ENV !== 'test') {
+    // --- MongoDB Connection ---
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log('Connected to MongoDB!'))
+        .catch(err => console.error('Connection error to MongoDB:', err.message));
+
+    // --- Start Server ---
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`API documentation at http://localhost:${PORT}/api-docs`);
+    });
+}
+
+// 🚀 CRITICAL: Export the Express app instance for Supertest/Jest
+module.exports = app;
+// This allows the test suite to import the app without starting the server automatically.

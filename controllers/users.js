@@ -1,4 +1,3 @@
-// controllers/users.js
 const User = require('../models/user');
 const Record = require('../models/record'); // Needed for cascading delete
 const bcrypt = require('bcryptjs'); // For Password Hashing
@@ -6,7 +5,12 @@ const bcrypt = require('bcryptjs'); // For Password Hashing
 // POST /user/register (CREATE)
 exports.register = async (req, res) => {
     // #swagger.tags = ['Users']
-    /* #swagger.parameters['body'] = { ... } */
+    /* #swagger.parameters['body'] = {
+        in: 'body',
+        description: 'User registration data.',
+        required: true,
+        schema: { $ref: "#/definitions/UserRegister" }
+    } */
     /* #swagger.responses[201] = { description: 'User successfully registered and logged in. A session cookie is returned.', schema: { message: 'User registered and logged in successfully!', userId: '60a7d5b1234567890abcdef' } } */
     /* #swagger.responses[400] = { description: 'Username and password are required.' } */
     /* #swagger.responses[409] = { description: 'User already exists.' } */
@@ -29,7 +33,7 @@ exports.register = async (req, res) => {
         const newUser = new User({ username, password: hashedPassword });
         await newUser.save();
         
-        // Automatic Login
+        // Automatic Login: Establish session immediately after registration
         req.session.userId = newUser._id; 
         
         res.status(201).json({ message: 'User registered and logged in successfully!', userId: newUser._id });
@@ -42,7 +46,12 @@ exports.register = async (req, res) => {
 // POST /user/login (READ/Establish Session)
 exports.login = async (req, res) => {
     // #swagger.tags = ['Users']
-    /* #swagger.parameters['body'] = { ... } */
+    /* #swagger.parameters['body'] = {
+        in: 'body',
+        description: 'User login data.',
+        required: true,
+        schema: { $ref: "#/definitions/UserLogin" }
+    } */
     /* #swagger.responses[200] = { description: 'User successfully logged in. A session cookie is returned.', schema: { message: 'Logged in successfully!', userId: '60a7d5b1234567890abcdef' } } */
     /* #swagger.responses[400] = { description: 'Username and password are required.' } */
     /* #swagger.responses[401] = { description: 'Invalid credentials.' } */
@@ -93,7 +102,7 @@ exports.logout = (req, res) => {
 };
 
 // =========================================================================
-// 🚀 NEW: GET /user/all - Get All Users (READ/List)
+// GET /user/all - Get All Users (READ/List)
 // =========================================================================
 exports.getAllUsers = async (req, res) => {
     // #swagger.tags = ['Users']
@@ -121,7 +130,12 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
     // #swagger.tags = ['Users']
     // #swagger.security = [{ "SessionCookie": [] }] 
-    /* #swagger.parameters['body'] = { ... } */
+    /* #swagger.parameters['body'] = {
+        in: 'body',
+        description: 'Fields to update (username and/or password).',
+        required: true,
+        schema: { username: 'newUsername', password: 'newPassword123' }
+    } */
     /* #swagger.responses[200] = { description: 'User profile successfully updated.' } */
     /* #swagger.responses[404] = { description: 'User not found.' } */
     /* NOTE: 401/403 are handled by the isAuthenticated middleware */
@@ -202,3 +216,4 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ message: 'Error deleting user account.', error: error.message });
     }
 };
+// =========================================================================
