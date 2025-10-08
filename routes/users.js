@@ -1,4 +1,4 @@
-// routes/users.js
+//routes/users.js
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/users');
@@ -17,6 +17,17 @@ router.post('/login', usersController.login);
 
 // GET /user/logout - D (Destroy Session)
 router.get('/logout', usersController.logout);
+
+
+// --- 🌐 Google OAuth Endpoints ---
+// NOTE: These routes typically use the 'passport' library in a real application. 
+// For this API setup, we are defining the controllers where the OAuth logic would reside.
+
+// GET /user/google - Starts the Google OAuth process (redirects to Google)
+router.get('/google', usersController.googleAuth);
+
+// GET /user/google/callback - Receives the token from Google and logs the user in
+router.get('/google/callback', usersController.googleCallback);
 
 
 // --- 🚀 User Profile CRUD Endpoints ---

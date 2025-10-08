@@ -1,4 +1,3 @@
-// controllers/comments.js
 const Comment = require('../models/comment');
 
 // =========================================================================
@@ -38,6 +37,24 @@ exports.createComment = async (req, res) => {
 };
 
 // =========================================================================
+// GET /comment/ - READ: Returns all comments (independent of Record)
+// =========================================================================
+exports.getAllComments = async (req, res) => {
+    // #swagger.tags = ['Comments']
+    /* #swagger.responses[200] = { description: 'List of all comments in the system.' } */
+    
+    try {
+        // Busca todos os comentários e popula o username do autor
+        const comments = await Comment.find({})
+            .populate('ownerId', 'username'); 
+
+        res.status(200).json(comments);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving all comments.', error: error.message });
+    }
+};
+
+// =========================================================================
 // GET /comment/record/:recordId - READ: Returns all comments for a specific Record
 // =========================================================================
 exports.getCommentsByRecord = async (req, res) => {
@@ -46,7 +63,7 @@ exports.getCommentsByRecord = async (req, res) => {
     /* #swagger.responses[200] = { description: 'List of comments for the Record.' } */
 
     try {
-        // Find comments by recordId, and optionally populate the owner's username
+        // Find comments by recordId, and populate the owner's username
         const comments = await Comment.find({ recordId: req.params.recordId })
             .populate('ownerId', 'username'); 
 
@@ -105,14 +122,18 @@ exports.updateComment = async (req, res) => {
         
         // Update only the text
         if (text) {
-            comment.text = text;
-            await comment.save();
+            // Using findByIdAndUpdate for simplicity and direct update
+            const updatedComment = await Comment.findByIdAndUpdate(
+                commentId,
+                { text },
+                { new: true, runValidators: true }
+            );
+
+            res.status(200).json(updatedComment);
         } else {
             return res.status(400).json({ message: 'Comment text is required for update.' });
         }
         
-        res.status(200).json({ message: 'Comment updated successfully.' });
-
     } catch (error) {
         res.status(500).json({ message: 'Error updating comment.', error: error.message });
     }

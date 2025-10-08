@@ -38,19 +38,23 @@ router.get('/logout', (req, res) => {
     // #swagger.tags = ['Authentication']
     /* #swagger.responses[200] = { description: 'Successfully logged out.' } */
     
-    // Passport adds a logout method to the request object (since Express 4.x)
+    // 1. Logs out the user using Passport's built-in function (removes user from session)
     req.logout((err) => {
         if (err) {
             console.error("Error during passport logout:", err);
             return res.status(500).json({ message: 'Error logging out.' });
         }
         
-        // Destroys the session and clears the cookie (similar to our user controller)
+        // 2. Destroys the entire session data in the store
         req.session.destroy(err => {
             if (err) {
                 console.error("Error destroying session after logout:", err);
             }
+            
+            // 3. Clears the session cookie from the client's browser
             res.clearCookie('connect.sid'); 
+            
+            // 4. Send success response
             res.status(200).json({ message: 'Logged out successfully.' });
         });
     });

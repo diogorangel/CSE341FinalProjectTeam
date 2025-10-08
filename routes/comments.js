@@ -1,12 +1,15 @@
-// routes/comments.js
 const express = require('express');
 const router = express.Router();
 const commentsController = require('../controllers/comments');
 const { isAuthenticated } = require('../middleware/authenticate'); // Assuming middleware is named isAuthenticated
 
 // --- Public/Read Access ---
+// NEW: GET /comment/ - READ: Returns ALL comments (independent of Record)
+router.get('/', commentsController.getAllComments); 
+
 // GET /comment/{id} - READ: Returns a single specific comment
 router.get('/:id', commentsController.getSingleComment);
+
 // GET /comment/record/:recordId - READ: Returns all comments for a Record
 router.get('/record/:recordId', commentsController.getCommentsByRecord);
 

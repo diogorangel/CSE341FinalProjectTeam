@@ -1,22 +1,43 @@
-// routes/categories.js
 const express = require('express');
 const router = express.Router();
 const categoriesController = require('../controllers/categories');
-const { isAuthenticated } = require('../middleware/authenticate'); // Assuming middleware is named isAuthenticated
+const { isAuthenticated } = require('../middleware/authenticate'); // Middleware to check if user is logged in
 
-// --- Public Access ---
-// GET /category - READ: Returns all
+// =========================================================================
+// PUBLIC ACCESS ROUTES (READ) - Accessible by anyone
+// =========================================================================
+
+// GET / - READ: Retrieve all categories
+// #swagger.tags = ['Categories']
+// #swagger.summary = 'Retrieves a list of all categories.'
 router.get('/', categoriesController.getAllCategories);
-// GET /category/{id} - READ: Returns a single specific
+
+// GET /{id} - READ: Retrieve a single category by ID
+// #swagger.tags = ['Categories']
+// #swagger.summary = 'Retrieves a single category by its ID.'
 router.get('/:id', categoriesController.getSingleCategory);
 
 
-// --- Authenticated Access (Requires Session Cookie) ---
-// POST /category - CREATE: Creates a new category
+// =========================================================================
+// AUTHENTICATED ACCESS ROUTES (CREATE, UPDATE, DELETE) - Requires Session
+// =========================================================================
+
+// POST / - CREATE: Creates a new category (Requires authentication)
+// #swagger.tags = ['Categories']
+// #swagger.summary = 'Creates a new category. Authentication required.'
+// #swagger.security = [{ "SessionCookie": [] }]
 router.post('/', isAuthenticated, categoriesController.createCategory);
-// PUT /category/{id} - UPDATE: Updates a category (Owner only)
+
+// PUT /{id} - UPDATE: Updates a category by ID (Requires authentication)
+// #swagger.tags = ['Categories']
+// #swagger.summary = 'Updates an existing category by its ID. Authentication required.'
+// #swagger.security = [{ "SessionCookie": [] }]
 router.put('/:id', isAuthenticated, categoriesController.updateCategory);
-// DELETE /category/{id} - DELETE: Removes a category (Owner only)
+
+// DELETE /{id} - DELETE: Removes a category by ID (Requires authentication)
+// #swagger.tags = ['Categories']
+// #swagger.summary = 'Deletes a category by its ID. Authentication required.'
+// #swagger.security = [{ "SessionCookie": [] }]
 router.delete('/:id', isAuthenticated, categoriesController.deleteCategory);
 
 module.exports = router;
