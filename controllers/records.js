@@ -1,4 +1,3 @@
-// controllers/records.js
 const Record = require('../models/record');
 
 // POST /record - CREATE: Adds a new record
@@ -101,7 +100,7 @@ exports.getSingleRecord = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}; // <-- Closing brace was missing here!
+};
 
 // PUT /record/{id} - UPDATE: Modifies an existing record
 exports.updateRecord = async (req, res) => {

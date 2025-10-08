@@ -13,7 +13,7 @@ This repository contains a collection of code for students that take the CSE 341
 npm i
 npm i swagger-ui-express
 npm i swagger-autogen
-
+node swagger.js
 
 ## How to use this repository
 
