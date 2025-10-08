@@ -10,12 +10,12 @@ const { isAuthenticated } = require('../middleware/authenticate'); // Middleware
 // GET / - READ: Retrieve all categories
 // #swagger.tags = ['Categories']
 // #swagger.summary = 'Retrieves a list of all categories.'
-router.get('/', categoriesController.getAllCategories);
+router.get('/',isAuthenticated, categoriesController.getAllCategories);
 
 // GET /{id} - READ: Retrieve a single category by ID
 // #swagger.tags = ['Categories']
 // #swagger.summary = 'Retrieves a single category by its ID.'
-router.get('/:id', categoriesController.getSingleCategory);
+router.get('/:id',isAuthenticated, categoriesController.getSingleCategory);
 
 
 // =========================================================================

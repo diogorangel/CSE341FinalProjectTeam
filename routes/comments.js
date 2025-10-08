@@ -5,13 +5,13 @@ const { isAuthenticated } = require('../middleware/authenticate'); // Assuming m
 
 // --- Public/Read Access ---
 // NEW: GET /comment/ - READ: Returns ALL comments (independent of Record)
-router.get('/', commentsController.getAllComments); 
+router.get('/', isAuthenticated, commentsController.getAllComments);
 
 // GET /comment/{id} - READ: Returns a single specific comment
-router.get('/:id', commentsController.getSingleComment);
+router.get('/:id',isAuthenticated,commentsController.getSingleComment);
 
 // GET /comment/record/:recordId - READ: Returns all comments for a Record
-router.get('/record/:recordId', commentsController.getCommentsByRecord);
+router.get('/record/:recordId',isAuthenticated,commentsController.getCommentsByRecord);
 
 
 // --- Authenticated Access (Requires Session Cookie) ---

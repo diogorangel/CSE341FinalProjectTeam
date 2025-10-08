@@ -10,7 +10,7 @@ const { isAuthenticated } = require('../middleware/authenticate');
 // --- User Session Management (C/R/D for Session) ---
 
 // POST /user/register - C (Create User and Session)
-router.post('/register', usersController.register);
+router.post('/register',isAuthenticated, usersController.register);
 
 // POST /user/login - R (Read/Establish Session)
 router.post('/login', usersController.login);
