@@ -24,6 +24,18 @@
     {
       "name": "Records",
       "description": "CRUD operations for Personal Records"
+    },
+    {
+      "name": "Categories",
+      "description": "Management of record categories (e.g., Work, Personal, School)"
+    },
+    {
+      "name": "Comments",
+      "description": "Adding and retrieving comments on specific records"
+    },
+    {
+      "name": "Authentication",
+      "description": "Google OAuth and traditional login/logout procedures."
     }
   ],
   "schemes": [
@@ -39,128 +51,100 @@
     }
   },
   "paths": {
-    "/user/register": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "username": {
-                  "example": "testuser"
-                },
-                "password": {
-                  "example": "password123"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "User successfully   and logged in. A session cookie is returned.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "message": {
-                  "type": "string",
-                  "example": "User registered and logged in successfully!"
-                },
-                "userId": {
-                  "type": "string",
-                  "example": "60a7d5b1234567890abcdef"
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          },
-          "400": {
-            "description": "Username and password are required."
-          },
-          "409": {
-            "description": "User already exists."
-          },
-          "500": {
-            "description": "Internal error while registering user."
-          }
-        }
-      }
-    },
-    "/user/login": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "username": {
-                  "example": "testuser1"
-                },
-                "password": {
-                  "example": "password1234"
-                }
-              }
-            }
-          }
-        ],
+    "/": {
+      "get": {
+        "description": "Server health check/home route.",
         "responses": {
           "200": {
-            "description": "User successfully logged in. A session cookie is returned.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "message": {
-                  "type": "string",
-                  "example": "Logged in successfully!"
-                },
-                "userId": {
-                  "type": "string",
-                  "example": "60a7d5b1234567890abcdef"
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          },
-          "400": {
-            "description": "Username and password are required."
-          },
-          "401": {
-            "description": "Invalid credentials."
-          },
-          "500": {
-            "description": "Internal error while logging in."
+            "description": "OK"
           }
         }
       }
     },
-    "/user/logout": {
+    "/dashboard": {
+      "get": {
+        "description": "Redirects to the dashboard view (requires session).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirects to login if not authenticated."
+          }
+        }
+      }
+    },
+    "/dashboard-test": {
+      "get": {
+        "description": "Test dashboard endpoint (potentially for development purposes).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Initiates Google OAuth flow.",
+        "responses": {
+          "302": {
+            "description": "Redirects to Google login page."
+          }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Google OAuth callback endpoint, completes authentication.",
+        "responses": {
+          "302": {
+            "description": "Redirects user to success/failure page."
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Logs out the user and destroys the session (for Google OAuth users).",
+        "responses": {
+          "200": {
+            "description": "Successfully logged out."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/all": {
       "get": {
         "tags": [
           "Users"
         ],
-        "description": "",
+        "summary": "Retrieves a list of all registered users.",
+        "description": "Returns a list of all user profiles. Requires authentication (isAuthenticated middleware).",
         "responses": {
           "200": {
-            "description": "Session successfully ended."
+            "description": "A list of users.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UserList"
+              }
+            }
           },
-          "500": {
-            "description": "Internal error while logging out."
+          "401": {
+            "description": "Authentication required."
           }
         },
         "security": [
@@ -170,37 +154,62 @@
         ]
       }
     },
-    "/user/all": {
-      "get": {
+    "/user/register": {
+      "post": {
         "tags": [
           "Users"
         ],
-        "description": "",
+        "summary": "Registers a new user.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User successfully created."
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Logs in a user.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRegistration"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of all users (password field is excluded).",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "_id": {
-                    "type": "string",
-                    "example": "60a7d5b1..."
-                  },
-                  "username": {
-                    "type": "string",
-                    "example": "testuser"
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          },
-          "500": {
-            "description": "Internal error while retrieving users."
+            "description": "Login successful."
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "get": {
+        "tags": [
+          "Users",
+          "Authentication"
+        ],
+        "summary": "Logs out the current user and destroys the session.",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully."
           }
         },
         "security": [
@@ -215,27 +224,22 @@
         "tags": [
           "Users"
         ],
-        "description": "",
+        "summary": "Updates the user profile by ID.",
+        "description": "Allows an authenticated user to update their account details.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the user to update."
           },
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "username": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/UserUpdate"
             }
           }
         ],
@@ -243,14 +247,8 @@
           "200": {
             "description": "User profile successfully updated."
           },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "User not found."
-          },
-          "500": {
-            "description": "Internal Server Error"
+          "401": {
+            "description": "Access denied. Please log in."
           }
         },
         "security": [
@@ -263,24 +261,23 @@
         "tags": [
           "Users"
         ],
-        "description": "",
+        "summary": "Deletes the user account by ID.",
+        "description": "Permanently deletes the user account and destroys the session. Requires authentication.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "The ID of the user to delete."
           }
         ],
         "responses": {
           "204": {
             "description": "User account successfully deleted (No Content)."
           },
-          "404": {
-            "description": "User not found."
-          },
-          "500": {
-            "description": "Internal Server Error"
+          "401": {
+            "description": "Access denied. Please log in."
           }
         },
         "security": [
@@ -290,41 +287,15 @@
         ]
       }
     },
-    "/record/": {
-      "post": {
+    "/record": {
+      "get": {
         "tags": [
           "Records"
         ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Record data to be created.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/RecordUpdate"
-            }
-          }
-        ],
+        "summary": "Retrieves all records for the logged-in user.",
         "responses": {
-          "201": {
-            "description": "Record successfully created.",
-            "schema": {
-              "$ref": "#/definitions/Record"
-            }
-          },
-          "400": {
-            "description": "First name is a required field."
-          },
-          "401": {
-            "description": "Access denied. Please log in."
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
+          "200": {
+            "description": "List of user-owned records."
           }
         },
         "security": [
@@ -333,40 +304,24 @@
           }
         ]
       },
-      "get": {
+      "post": {
         "tags": [
           "Records"
         ],
-        "description": "",
+        "summary": "Creates a new record.",
         "parameters": [
           {
-            "name": "search",
-            "in": "query",
-            "description": "Search term for first or last name.",
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecordUpdate"
+            }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successfully retrieved list of records.",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Record"
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          },
-          "401": {
-            "description": "Access denied. Please log in."
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
+          "201": {
+            "description": "Record successfully created."
           }
         },
         "security": [
@@ -381,7 +336,7 @@
         "tags": [
           "Records"
         ],
-        "description": "",
+        "summary": "Retrieves a single record by ID.",
         "parameters": [
           {
             "name": "id",
@@ -392,22 +347,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully retrieved the record.",
-            "schema": {
-              "$ref": "#/definitions/Record"
-            }
-          },
-          "401": {
-            "description": "Access denied. Please log in."
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Record not found or access denied."
-          },
-          "500": {
-            "description": "Internal Server Error"
+            "description": "Record found."
           }
         },
         "security": [
@@ -420,7 +360,7 @@
         "tags": [
           "Records"
         ],
-        "description": "",
+        "summary": "Updates an existing record (Owner only).",
         "parameters": [
           {
             "name": "id",
@@ -431,7 +371,6 @@
           {
             "name": "body",
             "in": "body",
-            "description": "Updated record data.",
             "required": true,
             "schema": {
               "$ref": "#/definitions/RecordUpdate"
@@ -440,22 +379,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Record successfully updated.",
-            "schema": {
-              "$ref": "#/definitions/Record"
-            }
-          },
-          "401": {
-            "description": "Access denied. Please log in."
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Record not found or access denied."
-          },
-          "500": {
-            "description": "Internal Server Error"
+            "description": "Record successfully updated."
           }
         },
         "security": [
@@ -468,7 +392,7 @@
         "tags": [
           "Records"
         ],
-        "description": "",
+        "summary": "Deletes a record (Owner only).",
         "parameters": [
           {
             "name": "id",
@@ -480,18 +404,6 @@
         "responses": {
           "204": {
             "description": "Record successfully deleted (No Content)."
-          },
-          "401": {
-            "description": "Access denied. Please log in."
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Record not found or access denied."
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         },
         "security": [
@@ -500,49 +412,335 @@
           }
         ]
       }
+    },
+    "/category": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Retrieves all categories for the logged-in user.",
+        "responses": {
+          "200": {
+            "description": "List of user-owned categories."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Creates a new category.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CategoryUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Category successfully created."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/category/{id}": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Retrieves a single category by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Updates an existing category (Owner only).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CategoryUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category successfully updated."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Deletes a category (Owner only).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Category successfully deleted (No Content)."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/comment": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Retrieves all comments in the system (Public).",
+        "responses": {
+          "200": {
+            "description": "List of all comments."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Creates a new comment on a record.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CommentCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Comment successfully created."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/comment/{id}": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Retrieves a single comment by ID (Public).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Updates an existing comment (Author only).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CommentUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment successfully updated."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Deletes a comment (Author only).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Comment successfully deleted (No Content)."
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/comment/record/{recordId}": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Retrieves all comments for a specific Record (Public).",
+        "parameters": [
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID of the Record."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of comments for the Record."
+          }
+        }
+      }
     }
   },
   "definitions": {
     "UserRegistration": {
       "type": "object",
+      "description": "Schema for user registration and login requests.",
       "properties": {
-        "_id": {
-          "type": "string",
-          "example": "60a7d5b1234567890abcefd0"
-        },
         "username": {
           "type": "string",
-          "example": "testuser"
+          "example": "user_api_test",
+          "description": "Username for login/registration."
         },
         "password": {
           "type": "string",
-          "example": "password123"
+          "example": "securepassword123",
+          "description": "User password."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "test.user@example.com",
+          "description": "User email address (required for registration)."
+        }
+      },
+      "required": [
+        "username",
+        "password",
+        "email"
+      ]
+    },
+    "UserList": {
+      "type": "object",
+      "description": "A simplified user object returned in list views (without password).",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8e",
+          "description": "MongoDB object ID of the User."
+        },
+        "username": {
+          "type": "string",
+          "example": "user_api_test",
+          "description": "Username."
         }
       }
     },
     "UserUpdate": {
       "type": "object",
+      "description": "Schema for updating user profile (optional fields).",
       "properties": {
-        "_id": {
-          "type": "string",
-          "example": "60a7d5b1234567890abcefd0"
-        },
         "username": {
           "type": "string",
-          "example": "testuser1"
+          "example": "new_username_api",
+          "description": "New username."
         },
         "password": {
           "type": "string",
-          "example": "password1234"
+          "example": "newsecurepassword456",
+          "description": "New password."
         }
       }
     },
     "Record": {
       "type": "object",
+      "description": "Complete Record object returned by the API.",
       "properties": {
         "_id": {
           "type": "string",
-          "example": "60a7d5b1234567890abcefd0"
+          "example": "651f62b7812c3f4e5a6b7c8d",
+          "description": "MongoDB object ID of the Record."
         },
         "firstName": {
           "type": "string",
@@ -554,6 +752,7 @@
         },
         "email": {
           "type": "string",
+          "format": "email",
           "example": "john.doe@example.com"
         },
         "phone": {
@@ -562,16 +761,19 @@
         },
         "birthday": {
           "type": "string",
+          "format": "date",
           "example": "1985-05-15"
         },
         "ownerId": {
           "type": "string",
-          "example": "60a7d5b1234567890abcdef"
+          "example": "651f62b7812c3f4e5a6b7c8e",
+          "description": "ID of the user who owns this record."
         }
       }
     },
     "RecordUpdate": {
       "type": "object",
+      "description": "Schema for creating or updating a Record.",
       "properties": {
         "firstName": {
           "type": "string",
@@ -583,6 +785,7 @@
         },
         "email": {
           "type": "string",
+          "format": "email",
           "example": "jane.smith@example.com"
         },
         "phone": {
@@ -591,9 +794,160 @@
         },
         "birthday": {
           "type": "string",
+          "format": "date",
           "example": "1995-10-20"
         }
+      },
+      "required": [
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    },
+    "Category": {
+      "type": "object",
+      "description": "Complete Category object returned by the API.",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8f",
+          "description": "MongoDB object ID of the Category."
+        },
+        "name": {
+          "type": "string",
+          "example": "Work"
+        },
+        "description": {
+          "type": "string",
+          "example": "Contacts related to my professional life.",
+          "description": "User-provided description of the category (optional)."
+        },
+        "colorHex": {
+          "type": "string",
+          "example": "#3498DB",
+          "description": "Hexadecimal color code for UI representation (optional)."
+        },
+        "isDefault": {
+          "type": "boolean",
+          "example": false,
+          "description": "Indicates if this is a system default category. Server-managed."
+        },
+        "recordCount": {
+          "type": "integer",
+          "example": 15,
+          "description": "Total number of records associated with this category. Server-managed."
+        },
+        "ownerId": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8e",
+          "description": "ID of the user who owns this category."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-10-08T17:00:00.000Z",
+          "description": "Timestamp of creation. Server-managed."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-10-09T10:30:00.000Z",
+          "description": "Timestamp of last update. Server-managed."
+        }
       }
+    },
+    "CategoryUpdate": {
+      "type": "object",
+      "description": "Schema for creating or updating a Category.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Family",
+          "description": "The category name. Must be unique per user."
+        },
+        "description": {
+          "type": "string",
+          "example": "My personal family and friend records (optional)."
+        },
+        "colorHex": {
+          "type": "string",
+          "example": "#FF5733",
+          "description": "Optional hex color code for display."
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "Comment": {
+      "type": "object",
+      "description": "Complete Comment object returned by the API.",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c90",
+          "description": "MongoDB object ID of the Comment."
+        },
+        "recordId": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8d",
+          "description": "ID of the Record the comment belongs to."
+        },
+        "ownerId": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8e",
+          "description": "ID of the User who authored the comment."
+        },
+        "text": {
+          "type": "string",
+          "example": "This is a great record entry!\n",
+          "description": "The content of the comment."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-10-08T17:00:00.000Z",
+          "description": "Timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-10-08T17:15:00.000Z",
+          "description": "Timestamp of last update."
+        }
+      }
+    },
+    "CommentCreate": {
+      "type": "object",
+      "description": "Schema for creating a new comment.",
+      "properties": {
+        "recordId": {
+          "type": "string",
+          "example": "651f62b7812c3f4e5a6b7c8d",
+          "description": "The ID of the Record to comment on."
+        },
+        "text": {
+          "type": "string",
+          "example": "New comment on this record."
+        }
+      },
+      "required": [
+        "recordId",
+        "text"
+      ]
+    },
+    "CommentUpdate": {
+      "type": "object",
+      "description": "Schema for updating an existing comment.",
+      "properties": {
+        "text": {
+          "type": "string",
+          "example": "This comment has been edited and improved."
+        }
+      },
+      "required": [
+        "text"
+      ]
     }
   }
 }

@@ -14,6 +14,12 @@ const recordSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    // models/record.js (Add categoryId field)
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: false // Optional
     }
 });
 
