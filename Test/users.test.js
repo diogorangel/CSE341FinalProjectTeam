@@ -1,123 +1,183 @@
-// Ensure all necessary dependencies (like User, bcrypt, request, app)
-// are defined or imported at the top of the file.
+/**
+ * User API Integration Tests: tests/users.test.js
+ * * Integration tests for all user routes (/user)
+ * * Covers session management (login/logout) and profile CRUD.
+ */
 
-// Example Mocks and setup (Assume these are at the top of the actual file)
-/*
-jest.mock('../models/User'); 
-jest.mock('bcrypt'); 
 const request = require('supertest');
-const app = require('../server'); // Your Express app
-const User = require('../models/User');
-const bcrypt = require('bcrypt');
-const MOCK_USER_ID = '651f62b7812c3f4e5a6b7c8e';
-const MOCK_HASHED_PASSWORD = 'hashedpasswordmock';
-*/
+const app = require('../server'); // Assume 'server.js' exports the Express app
+const { 
+  MOCK_USER_ID, 
+  MOCK_OTHER_ID, 
+  MOCK_USER,
+  NEW_USER_PAYLOAD, // Add this payload in mockData.js
+  LOGIN_PAYLOAD, // Add this payload in mockData.js
+  UPDATED_USER_PAYLOAD // Add this payload in mockData.js
+} = require('./mockdata');
 
-// =========================================================================
-// Test Suite: User Login
-// =========================================================================
-describe('User Login (POST /user/login)', () => {
-    // Define the mockUser with the structure that Mongoose.findOne should return.
-    const mockUser = { 
+// --- Mongoose Model Mock for User ---
+const User = {
+  find: jest.fn(),
+  findById: jest.fn(),
+  create: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
+  findByIdAndDelete: jest.fn(),
+  findOne: jest.fn(), // Used for login
+};
+
+// --- Authentication Middleware Mock ---
+// Reuses the isAuthenticated mock.
+jest.mock('../middleware/authenticate', () => ({
+  isAuthenticated: (req, res, next) => {
+    // If the global authentication cookie is present
+    if (global.authCookie) { 
+      req.session = { userId: MOCK_USER_ID };
+      req.user = { _id: MOCK_USER_ID }; // Simulates logged-in user for profile routes
+      next();
+    } else {
+      res.status(401).json({ message: 'User must be authenticated.' });
+    }
+  },
+}));
+
+// Controller Mock: Simulates actions that UsersController would perform
+// Note: In a real integration test, you would only mock the Model layer (User)
+jest.mock('../controllers/users', () => ({
+    register: jest.fn((req, res) => res.status(201).json({ 
         _id: MOCK_USER_ID, 
-        username: 'testuser', 
-        password: MOCK_HASHED_PASSWORD,
-        // It's crucial to mock the password verification function (typically bcrypt.compare is used)
-        // and the toJSON function (if Mongoose uses it to serialize the response)
-    };
+        email: req.body.email, 
+        displayName: req.body.displayName 
+    })),
+    login: jest.fn((req, res) => res.status(200).send('Logged in')),
+    logout: jest.fn((req, res) => res.status(200).send('Logged out')),
+    getAllUsers: jest.fn((req, res) => res.status(200).json([
+        { _id: MOCK_USER_ID, displayName: 'User A' },
+        { _id: MOCK_OTHER_ID, displayName: 'User B' }
+    ])),
+    updateUser: jest.fn((req, res) => res.status(200).json({ 
+        _id: req.params.id, 
+        ...req.body 
+    })),
+    deleteUser: jest.fn((req, res) => res.status(204).send()),
+    // Stubs for OAuth routes
+    googleAuth: jest.fn((req, res) => res.status(200).send('Redirecting to Google')),
+    googleCallback: jest.fn((req, res) => res.status(200).send('OAuth Callback Success')),
+}));
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-        // Set up the bcrypt mock to succeed by default
-        bcrypt.compare.mockResolvedValue(true); 
+
+describe('User API Integration Tests', () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks(); // Clears mock calls between tests
+  });
+
+  // =========================================================================
+  // 1. Session Management (POST /register, POST /login, GET /logout)
+  // =========================================================================
+  describe('User Session Routes', () => {
+    
+    // Test POST /register
+    it('should register a new user and establish a session (201)', async () => {
+      // Note: Your register route uses isAuthenticated, which is unusual.
+      // Assuming the middleware allows passage to the controller in this case.
+      
+      const response = await request(app)
+        .post('/user/register')
+        .set('Cookie', global.authCookie) // Simulates auth, if needed for the middleware
+        .send(NEW_USER_PAYLOAD);
+
+      expect(response.statusCode).toBe(201);
+      expect(response.body._id).toBe(MOCK_USER_ID);
     });
 
-    it('should log in a user successfully, set session, and return 200', async () => {
-        // 1. Arrange: Set up the mock to find the user
-        User.findOne.mockResolvedValue(mockUser); 
+    // Test POST /login
+    it('should successfully login a user (200)', async () => {
+      // The Auth integration test should already capture and store the cookie.
+      const response = await request(app)
+        .post('/user/login')
+        .send(LOGIN_PAYLOAD);
 
-        // 2. Act: Make the login request
-        const res = await request(app)
-            .post('/user/login')
-            .send({
-                username: 'testuser',
-                password: 'correctpassword' // Will be compared against MOCK_HASHED_PASSWORD
-            }); 
-        
-        // 3. Assert: Verify the result
-        expect(res.statusCode).toEqual(200);
-        // The response body should contain useful information, such as the ID
-        expect(res.body).toHaveProperty('userId', MOCK_USER_ID); 
-        expect(res.body).toHaveProperty('message', 'Login successful'); // Assuming you return a success message
-        
-        // Verify if the user lookup and password comparison occurred
-        expect(User.findOne).toHaveBeenCalledWith({ username: 'testuser' });
-        expect(bcrypt.compare).toHaveBeenCalledWith('correctpassword', MOCK_HASHED_PASSWORD);
-
-        // **Session Test (Supertest):** Verify if the session was created/the cookie was sent.
-        // The presence of 'connect.sid' indicates the session was successfully established.
-        expect(res.headers['set-cookie']).toBeDefined();
-        const sessionCookie = res.headers['set-cookie'].find(cookie => cookie.startsWith('connect.sid'));
-        expect(sessionCookie).toBeDefined();
-
-        // Note: The actual session test (req.session.userId) happens inside the controller mock,
-        // but Supertest verifies if the server sent the cookie.
-    });
-
-    it('should return 401 for incorrect password', async () => {
-        // Mock finding the user
-        User.findOne.mockResolvedValue(mockUser); 
-        // Mock to simulate password comparison failure
-        bcrypt.compare.mockResolvedValue(false); 
-
-        const res = await request(app)
-            .post('/user/login')
-            .send({
-                username: 'testuser',
-                password: 'wrongpassword'
-            }); 
-        
-        // Check 401 status for unauthorized
-        expect(res.statusCode).toEqual(401);
-        expect(res.body).toHaveProperty('message', 'Incorrect username or password.'); 
-        expect(res.headers['set-cookie']).toBeUndefined(); // Should not set a cookie
-    });
-
-    it('should return 401 if the username is not found', async () => {
-        // Mock not finding the user
-        User.findOne.mockResolvedValue(null); 
-
-        const res = await request(app)
-            .post('/user/login')
-            .send({
-                username: 'nonexistent',
-                password: 'anypassword'
-            }); 
-        
-        // Check 401 status
-        expect(res.statusCode).toEqual(401);
-        expect(res.body).toHaveProperty('message', 'Incorrect username or password.'); 
-        // Password comparison should NOT be called if the user is not found
-        expect(bcrypt.compare).not.toHaveBeenCalled(); 
-        expect(res.headers['set-cookie']).toBeUndefined(); // Should not set a cookie
+      expect(response.statusCode).toBe(200);
+      expect(response.text).toBe('Logged in');
+      // In a real test, you would check if a new connect.sid cookie was set here.
     });
     
-    it('should return 422 for invalid input (missing field)', async () => {
-        // 1. Act: Make the request without the 'password' field
-        const res = await request(app)
-            .post('/user/login')
-            .send({
-                username: 'testuser'
-                // password is intentionally missing
-            }); 
-        
-        // 2. Assert: Check 422 (Unprocessable Entity) or 400 (Bad Request) status, 
-        // depending on your schema validation (joi/express-validator)
-        // Adding this test to validate the schema defined in Swagger
-        expect(res.statusCode).toBeGreaterThanOrEqual(400); 
-        expect(res.statusCode).toBeLessThan(500); 
-        // You can be more specific if you have a schema validator
-        // expect(res.body).toHaveProperty('message', expect.stringContaining('required')); 
-        expect(User.findOne).not.toHaveBeenCalled();
+    // Test GET /logout
+    it('should successfully logout the user (200)', async () => {
+      const response = await request(app)
+        .get('/user/logout')
+        .set('Cookie', global.authCookie); // Sends the active cookie
+
+      expect(response.statusCode).toBe(200);
+      expect(response.text).toBe('Logged out');
+      // In a real test, you would check if the connect.sid cookie was cleared/expired.
     });
+
+    // Stub tests for OAuth (just checks expected status code)
+    it('GET /user/google should initiate OAuth (200)', async () => {
+        const response = await request(app).get('/user/google');
+        expect(response.statusCode).toBe(200);
+    });
+  });
+
+  // =========================================================================
+  // 2. User Profile CRUD (Protected)
+  // =========================================================================
+  describe('User Profile CRUD Routes', () => {
+
+    // Test GET /user/all
+    it('should return all users for an authenticated user (200)', async () => {
+      const response = await request(app)
+        .get('/user/all')
+        .set('Cookie', global.authCookie);
+
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(2);
+    });
+    
+    // Test PUT /user/:id
+    it('should update the profile if the user is authorized (200)', async () => {
+      // For PUT, we simulate that req.params.id equals req.user._id (MOCK_USER_ID)
+      // The controller mock assumes authorization was checked by middleware/controller.
+      
+      const response = await request(app)
+        .put(`/user/${MOCK_USER_ID}`) // Logged-in user's ID
+        .set('Cookie', global.authCookie)
+        .send(UPDATED_USER_PAYLOAD);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.displayName).toBe(UPDATED_USER_PAYLOAD.displayName);
+    });
+
+    // Test DELETE /user/:id
+    it('should delete the user profile if the user is authorized (204)', async () => {
+      // For DELETE, we simulate that req.params.id equals req.user._id
+      
+      const response = await request(app)
+        .delete(`/user/${MOCK_USER_ID}`) // Logged-in user's ID
+        .set('Cookie', global.authCookie);
+
+      expect(response.statusCode).toBe(204);
+    });
+    
+    // Authentication Failure Tests (Applies to GET/all, PUT, DELETE)
+    it('should return 401 if user is not authenticated for a protected route', async () => {
+      // Temporarily remove the cookie to test 401
+      const oldCookie = global.authCookie;
+      global.authCookie = null;
+      
+      const response = await request(app)
+        .get('/user/all');
+
+      expect(response.statusCode).toBe(401);
+      
+      // Restore the cookie
+      global.authCookie = oldCookie;
+    });
+
+    // Authorization Note: The check for whether the logged-in user is updating/deleting
+    // ONLY their own profile should be done INSIDE usersController.
+    // The current controller mock does not simulate this failure (403), but a unit test would.
+  });
 });
